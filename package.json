@@ -1,0 +1,27 @@
+{
+  "name": "jsobjectutils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/objectutils.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hemashushu/jsobjectutils.git"
+  },
+  "keywords": [
+    "digital",
+    "circuit",
+    "logic"
+  ],
+  "author": "Hippo Spark <hippospark@gmail.com> (https://twitter.com/hemashushu)",
+  "license": "SEE LICENSE IN <LICENSE.md>",
+  "bugs": {
+    "url": "https://github.com/hemashushu/jsobjectutils/issues"
+  },
+  "homepage": "https://github.com/hemashushu/jsobjectutils#readme",
+  "devDependencies": {
+    "mocha": "^8.3.2"
+  }
+}
