@@ -1,23 +1,38 @@
+/**
+ * 对纯数据类型的 Object 和 Array 的一些常用操作。
+ */
 class ObjectUtils {
 
     /**
-     * 合并两个对象
+     * 合并两个纯数据类型的对象
      *
-     * sourceObject 的所有 keyValue 会被直接复制到 targetObject（输出对象），而
-     * defaultObject 的 keyValue 仅当 source 对象不存在相应的 key 时，才被
-     * 复制到 targetObject。
+     * sourceObject 的所有 keyValue 会被直接复制到 targetObject（输出对象），
      *
-     * @param {*} sourceObject 源对象
-     * @param {*} defaultObject 默认对象
+     * defaultObject 的 keyValue 仅当：
+     * 1. sourceObject 不存在相应的 key；
+     * 2. sourceObject 存在相应的 key，但值为 undefined（注意不是 null）；
+     *
+     * 才被复制到 targetObject。
+     *
+     * 如果某个 key 的值为 function 类型，其值会被替换为 undefined。
+     *
+     * @param {*} sourceObject 源对象，keyValue 被优先保留的对象。
+     * @param {*} defaultObject 默认对象，keyValue 作为后备（补充）的对象。
      * @param {*} keyValueModifyFuncs 值修改方法
-     * @param {*} _internalKeyNamePath 方法内部使用的参数，外部调用者可忽略
+     * @param {*}
      * @returns
      */
-    static objectMerge(sourceObject, defaultObject, keyValueModifyFuncs, _internalKeyNamePath) {
+    static objectMerge(sourceObject, defaultObject, keyValueModifyFuncs) {
+        return ObjectUtils._objectMerge(sourceObject, defaultObject, keyValueModifyFuncs);
+    }
 
+    // PRIVATE
+    static _objectMerge(sourceObject, defaultObject, keyValueModifyFuncs, objectNamePath) {
         let targetObject = {};
 
-        // valueModifyFunc 是一个值修改方法的映射（Map），结构如下:
+        // ## keyValueModifyFuncs：
+        //
+        // 一个值修改方法的映射（Map），结构如下:
         // {
         //		"namePath": function("the original property's value of the source object"){
         //				return "new value";
@@ -33,6 +48,10 @@ class ObjectUtils {
         //         }
         // }
 
+        // ## objectNamePath:
+        //
+        // 当前对象的 name path，内部使用的参数
+
         // Object.keys 相当于 for...in + hasOwnProperty
         //
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
@@ -45,13 +64,14 @@ class ObjectUtils {
 
         for (let sourceObjectKey of sourceObjectKeys) {
             let sourceValue = sourceObject[sourceObjectKey];
+            let sourceValueType = typeof (sourceValue);
 
             // 构建当前 key 的名称路径（name path）
-            let currentKeyNamePath = (_internalKeyNamePath === undefined) ?
-                sourceObjectKey : _internalKeyNamePath + '.' + sourceObjectKey;
+            let keyNamePath = (objectNamePath === undefined) ?
+                sourceObjectKey : objectNamePath + '.' + sourceObjectKey;
 
             if (keyValueModifyFuncs !== undefined) {
-                let keyValueModifyFunc = keyValueModifyFuncs[currentKeyNamePath];
+                let keyValueModifyFunc = keyValueModifyFuncs[keyNamePath];
                 if (keyValueModifyFunc !== undefined) {
                     // 添加经过修改方法返回的新值
                     targetObject[sourceObjectKey] = keyValueModifyFunc(sourceValue);
@@ -62,9 +82,13 @@ class ObjectUtils {
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
 
-            if (Array.isArray(sourceValue)) {
+            if (sourceValue === undefined) {
+                // 源值为 undefined
+                targetObject[sourceObjectKey] = undefined;
+
+            } else if (Array.isArray(sourceValue)) {
                 // 源值是一个数组
-                targetObject[sourceObjectKey] = ObjectUtils.arrayClone(sourceValue, keyValueModifyFuncs, currentKeyNamePath);
+                targetObject[sourceObjectKey] = ObjectUtils._arrayClone(sourceValue, keyValueModifyFuncs, keyNamePath);
 
             } else if (sourceValue === null) {
                 // 源值为 null
@@ -76,25 +100,37 @@ class ObjectUtils {
                 // 源值为一个 Date 对象，因为使用 typeof 方法返回的也是 'object'，所以需要单独复制它。
                 targetObject[sourceObjectKey] = ObjectUtils.dateClone(sourceValue);
 
-            } else if (typeof sourceValue === 'object') {
+            } else if (sourceValueType === 'object') {
                 // 源值是一个对象
 
                 let defaultValue = defaultObject[sourceObjectKey];
+                let defaultValueType = typeof(defaultValue);
 
                 if (defaultObjectKeys.indexOf(sourceObjectKey) >= 0 &&
+                    defaultValue !== undefined &&
+                    !Array.isArray(defaultValue) &&
+                    defaultValue !== null &&
                     !(defaultValue instanceof Date) &&
-                    typeof defaultValue === 'object') {
+                    defaultValueType === 'object') {
+
                     // 源值和默认值都是一个对象，需要进行深层合并
-                    targetObject[sourceObjectKey] = ObjectUtils.objectMerge(
-                        sourceValue, defaultValue, keyValueModifyFuncs, currentKeyNamePath);
+                    targetObject[sourceObjectKey] = ObjectUtils._objectMerge(
+                        sourceValue, defaultValue, keyValueModifyFuncs, keyNamePath);
+
                 } else {
-                    // 在默认对象里不存在相应的 key，或者虽然存在，但不是相同的 'object'
-                    // 类型，这种情况下，只能直接 clone 源值而丢弃默认值（假如存在的话）。
-                    targetObject[sourceObjectKey] = ObjectUtils.objectClone(sourceValue, keyValueModifyFuncs, currentKeyNamePath);
+                    // 默认对象里不存在相应的 key，
+                    // 或者虽然存在，但不是纯数据 'object' 类型，
+                    // 这种情况下，只能直接采用源值而丢弃默认值。
+                    targetObject[sourceObjectKey] = ObjectUtils._objectClone(
+                        sourceValue, keyValueModifyFuncs, keyNamePath);
                 }
 
+            } else if (sourceValueType === 'function') {
+                // 源值是一个 function，纯数据对象不允许函数类型的属性值，故替换为 undefined
+                targetObject[sourceObjectKey] = undefined;
+
             } else {
-                // 源值可能是一些基本数据类型
+                // 源值可能是一些基本数据类型，比如 "boolean"、“number”、“bigint”、“string”、“symbol”
                 targetObject[sourceObjectKey] = sourceValue;
             }
         }
@@ -102,36 +138,48 @@ class ObjectUtils {
         // 接下来复制仅存在于 default 对象的 keyValue。
         for (let defaultObjectKey of defaultObjectKeys) {
 
-            if (sourceObjectKeys.indexOf(defaultObjectKey) >= 0) {
-                // 跳过 sourceObject 已存在的 keyValue
+            if (sourceObjectKeys.indexOf(defaultObjectKey) >= 0 &&
+                sourceObject[defaultObjectKey] !== undefined) {
+                // 跳过 sourceObject 已存在且值不为 undefined 的 key
                 continue;
             }
 
             let defaultValue = defaultObject[defaultObjectKey];
+            let defaultValueType = typeof (defaultValue);
 
-            let currentKeyNamePath = (_internalKeyNamePath === undefined) ?
-                defaultObjectKey : _internalKeyNamePath + '.' + defaultObjectKey;
+            let keyNamePath = (objectNamePath === undefined) ?
+                defaultObjectKey : objectNamePath + '.' + defaultObjectKey;
 
             if (defaultValue === undefined) {
-                // 跳过值为 undefined 的 keyValue
+                // 默认值为 undefined
+                targetObject[defaultObjectKey] = undefined;
 
             } else if (Array.isArray(defaultValue)) {
                 // 默认值是一个 Array
-                targetObject[defaultObjectKey] = ObjectUtils.arrayClone(
-                    defaultValue, keyValueModifyFuncs, currentKeyNamePath);
+                targetObject[defaultObjectKey] = ObjectUtils._arrayClone(
+                    defaultValue, keyValueModifyFuncs, keyNamePath);
 
             } else if (defaultValue === null) {
                 // 默认值是 null
-                // null 也被视为一种存在的值，复制到 targetObject，以防止该 keyValue 在将来的 objectMerge 时被默认值覆盖。
+
+                // null 也被视为一种存在的值，复制到 targetObject，以防止
+                // 该 key 在将来的 objectMerge 调用中被覆盖。
                 targetObject[defaultObjectKey] = null;
 
             } else if (defaultValue instanceof Date) {
-                // 默认值为一个 Date 对象，因为使用 typeof 方法返回的也是 'object'，所以需要单独复制它。
+                // 默认值为一个 Date 对象
+
+                // 因为使用 typeof 方法返回的也是 'object'，所以需要单独复制它。
                 targetObject[defaultObjectKey] = ObjectUtils.dateClone(defaultValue);
 
-            } else if (typeof defaultValue === 'object') {
+            } else if (defaultValueType === 'object') {
                 // 默认值是一个对象
-                targetObject[defaultObjectKey] = ObjectUtils.objectClone(defaultValue, keyValueModifyFuncs, currentKeyNamePath);
+                targetObject[defaultObjectKey] = ObjectUtils._objectClone(
+                    defaultValue, keyValueModifyFuncs, keyNamePath);
+
+            } else if (defaultValueType === 'function') {
+                // 默认值是一个 function，纯数据对象不允许函数类型的属性值，故替换为 undefined
+                targetObject[defaultObjectKey] = undefined;
 
             } else {
                 targetObject[defaultObjectKey] = defaultValue;
@@ -143,20 +191,26 @@ class ObjectUtils {
 
     /**
      *
-     * 合并两个数组
+     * 合并两个数组不重复的元素
      *
-     * 当前只支持比较/合并数组中数据类型为 **字符串、数字、Date 等类型** 的元素，其他
-     * 数据类型的元素因为无法跟数组中已存在的元素进行比较，所以它们将被直接 clone。
+     * 当前只支持比较数组中数据类型为 **字符串、数字、Date、Bigint、Boolean 等类型** 的元素，其他
+     * 数据类型的元素因为无法（跟目标数组中已存在的元素）进行比较，所以它们将被直接 clone。
      *
      * 比如 [2,3,4] 和 [3,4,5] 将合并成为 [2,3,4,5]
+     *
+     * undefined，null 等元素会被保留到目标数组，类型为 function 的元素会被替换为 undefined。
      *
      * @param {*} sourceArray
      * @param {*} defaultArray
      * @param {*} keyValueModifyFuncs
-     * @param {*} _internalKeyNamePath
      * @returns
      */
-    static arrayMerge(sourceArray, defaultArray, keyValueModifyFuncs, _internalKeyNamePath) {
+    static arrayMerge(sourceArray, defaultArray, keyValueModifyFuncs) {
+        return ObjectUtils._arrayMerge(sourceArray, defaultArray, keyValueModifyFuncs);
+    }
+
+    // PRIVATE
+    static _arrayMerge(sourceArray, defaultArray, keyValueModifyFuncs, arrayNamePath) {
 
         // 当一个对象里的某个 key 的值为 Array 时，而 Array 里的元素又
         // 是一个对象时，比如：
@@ -178,35 +232,39 @@ class ObjectUtils {
         //
         // "bar" 的名称路径为 "foo.[].[].bar"
 
-        let currentKeyNamePath = (_internalKeyNamePath === undefined) ?
-            '[]' : _internalKeyNamePath + '.' + '[]';
+        let elementNamePath = (arrayNamePath === undefined) ?
+            '[]' : arrayNamePath + '.' + '[]';
 
-        // deep clone 一份源数组，当应用于不需要态严谨的场合时，也可以使用 sourceArray.slice() 进行浅 clone
-        let targetArray = ObjectUtils.arrayClone(sourceArray, keyValueModifyFuncs, _internalKeyNamePath);
+        // 为防止源数组被修改，deep clone 一份源数组。
+        // 当应用于不需要态严谨的场合时，这里也可以使用 sourceArray.slice() 进行浅 clone
+        let targetArray = ObjectUtils._arrayClone(sourceArray, keyValueModifyFuncs, arrayNamePath);
 
         let sourceArrayLength = sourceArray.length;
 
         for (let defaultValue of defaultArray) {
+            let defaultValueType = typeof (defaultValue);
+
             if (defaultValue === undefined) {
-                // 跳过值为 undefined 的元素
+                // 默认值为 undefined，无法比较，故直接添加到目标数组
+                targetArray.push(undefined);
 
             } else if (Array.isArray(defaultValue)) {
                 // 默认值为 Array。
                 // 因为无法与已存在的元素进行比较，故直接 clone。
-                targetArray.push(ObjectUtils.arrayClone(defaultValue, keyValueModifyFuncs, currentKeyNamePath));
+                targetArray.push(ObjectUtils._arrayClone(
+                    defaultValue, keyValueModifyFuncs, elementNamePath));
 
             } else if (defaultValue === null) {
-                // 默认值为 NULL。
-                // 因为无法与已存在的元素进行比较，故直接 clone。
+                // 默认值为 null
+                // 因为无法与已存在的元素进行比较，故直接添加到目标数组
                 targetArray.push(null);
 
             } else if (defaultValue instanceof Date) {
                 // 默认值为 Date 类型数据，先进行比较再决定是否 clone。
-                let ms = defaultValue.getTime();
                 let found = false;
                 for (let idx = 0; idx < sourceArrayLength; idx++) {
                     if (targetArray[idx] instanceof Date &&
-                        targetArray[idx].getTime() === ms) {
+                        ObjectUtils.dateEquals(targetArray[idx], defaultValue)) {
                         found = true;
                         break;
                     }
@@ -217,15 +275,14 @@ class ObjectUtils {
                         ObjectUtils.dateClone(defaultValue));
                 }
 
-            } else if (typeof defaultValue === 'object') {
+            } else if (defaultValueType === 'object') {
                 // 默认值是一个对象
                 targetArray.push(
-                    ObjectUtils.objectClone(defaultValue, keyValueModifyFuncs, currentKeyNamePath));
+                    ObjectUtils._objectClone(defaultValue, keyValueModifyFuncs, elementNamePath));
 
             } else if (
-                // 'string' 和 'number' 先进行比较，然后再决定是否添加到 targetArray
-                typeof defaultValue === 'string' ||
-                typeof defaultValue === 'number') {
+                // 'string', 'number', 'boolean' 和 'bigint' 先进行比较，然后再决定是否添加到 targetArray
+                ['string', 'number', 'boolean', 'bigint'].includes(defaultValueType)) {
 
                 let found = false;
                 for (let idx = 0; idx < sourceArrayLength; idx++) {
@@ -238,6 +295,10 @@ class ObjectUtils {
                 if (!found) {
                     targetArray.push(defaultValue);
                 }
+
+            } else if (defaultValueType === 'function') {
+                // 默认值的类型为 function，纯数据类型 Array 不允许这种类型，所以需替换为 undefined
+                targetArray.push(undefined);
 
             } else {
                 // 其他数据类型直接添加到 targetArray
@@ -253,11 +314,16 @@ class ObjectUtils {
      *
      * @param {*} sourceObject
      * @param {*} keyValueModifyFuncs
-     * @param {*} _internalKeyNamePath
      * @returns
      */
-    static objectClone(sourceObject, keyValueModifyFuncs, _internalKeyNamePath) {
-        return ObjectUtils.objectMerge(sourceObject, {}, keyValueModifyFuncs, _internalKeyNamePath);
+    static objectClone(sourceObject, keyValueModifyFuncs) {
+        return ObjectUtils._objectClone(sourceObject, keyValueModifyFuncs);
+    }
+
+    // PRIVATE
+    static _objectClone(sourceObject, keyValueModifyFuncs, objectNamePath) {
+        return ObjectUtils._objectMerge(
+            sourceObject, {}, keyValueModifyFuncs, objectNamePath);
     }
 
     /**
@@ -268,32 +334,82 @@ class ObjectUtils {
      * @param {*} _internalKeyNamePath
      * @returns
      */
-    static arrayClone(sourceArray, keyValueModifyFuncs, _internalKeyNamePath) {
-        let currentKeyNamePath = (_internalKeyNamePath === undefined) ?
-            '[]' : _internalKeyNamePath + '.' + '[]';
+    static arrayClone(sourceArray, keyValueModifyFuncs) {
+        return ObjectUtils._arrayClone(sourceArray, keyValueModifyFuncs);
+    }
+
+    // PRIVATE
+    static _arrayClone(sourceArray, keyValueModifyFuncs, arrayNamePath) {
+        let elementNamePath = (arrayNamePath === undefined) ?
+            '[]' : arrayNamePath + '.' + '[]';
 
         let targetArray = [];
         for (let item of sourceArray) {
-            if (Array.isArray(item)) {
-                targetArray.push(ObjectUtils.arrayClone(
-                    item, keyValueModifyFuncs, currentKeyNamePath));
-
-            } else if (item === null) {
-                targetArray.push(null);
-
-            } else if (item instanceof Date) {
-                targetArray.push(ObjectUtils.dateClone(item));
-
-            } else if (typeof item === 'object') {
-                targetArray.push(
-                    ObjectUtils.objectClone(item, keyValueModifyFuncs, currentKeyNamePath));
-
-            } else {
-                targetArray.push(item);
-            }
+            targetArray.push(ObjectUtils._clone(item, elementNamePath));
         }
 
         return targetArray;
+    }
+
+    /**
+     * 深度 clone 一个对象或数组。
+     *
+     * @param {*} source
+     * @returns
+     */
+    static clone(source) {
+        return ObjectUtils._clone(source);
+    }
+
+    // PRIVATE
+    static _clone(source, namePath) {
+        let target;
+
+        if (source === undefined) {
+            //
+        } else if (Array.isArray()) {
+            target = ObjectUtils._arrayClone(
+                source, keyValueModifyFuncs, namePath);
+
+        } else if (source === null) {
+            target = null;
+
+        } else if (source instanceof Date) {
+            target = ObjectUtils.dateClone(source);
+
+        } else if (typeof source === 'object') {
+            target =ObjectUtils._objectClone(
+                source, keyValueModifyFuncs, namePath);
+
+        } else if (typeof source === 'function') {
+            //
+        } else {
+            target = source;
+        }
+
+        return target;
+    }
+
+    /**
+     * 挑选对象中指定名称的 keyValues 并形成一个新的对象
+     *
+     * @param {*} sourceObject
+     * @param {*} keys 期望保留的属性名称数组（string Array），当省略这个参数时，
+     *     该方法等同于 objectClone 方法。
+     */
+    static pruneObject(sourceObject, keys) {
+        if (keys === undefined) {
+            return ObjectUtils.objectClone(sourceObject);
+        }else {
+            let targetObject = {};
+
+            for (let key of keys) {
+                let sourceValue = sourceObject[key];
+                targetObject[key] = ObjectUtils.clone(sourceValue);
+            }
+
+            return targetObject;
+        }
     }
 
     /**
@@ -355,6 +471,14 @@ class ObjectUtils {
 
                     let rightValue = rightObject[leftKey];
 
+                    if (leftKey === undefined) {
+                        if (rightValue === undefined) {
+                            continue;
+                        }
+
+                        return false;
+                    }
+
                     if (Array.isArray(leftValue)) {
                         if (Array.isArray(rightValue)) {
                             if (ObjectUtils.arrayEquals(leftValue, rightValue)) {
@@ -385,6 +509,7 @@ class ObjectUtils {
 
                     if (typeof leftValue === 'object') {
                         if (typeof rightValue === 'object') {
+                            // 递归比较子对象
                             if (ObjectUtils.objectEquals(leftValue, rightValue)) {
                                 continue;
                             }
@@ -455,6 +580,14 @@ class ObjectUtils {
         for (let idx = 0; idx < leftArray.length; idx++) {
             let leftValue = leftArray[idx];
             let rightValue = rightArray[idx];
+
+            if (leftValue === undefined) {
+                if (rightValue === undefined) {
+                    continue;
+                }
+
+                return false;
+            }
 
             if (Array.isArray(leftValue)) {
                 if (Array.isArray(rightValue)) {
@@ -650,17 +783,49 @@ class ObjectUtils {
     }
 
     /**
-     * Get property value by name path.
+     * 判断数组是否存在所有指定的值。
      *
-     * The name path can contains dot symbol, such as 'one.two' will get the
-     * property 'two' of the sub-object 'one'.
-     *
-     * Return undefined if the specified name path does not exists.
-     *
-     * @param  {[type]} obj      [description]
-     * @param  {[type]} namePath [description]
-     * @return {[type]}          [description]
+     * @param {*} sourceArray
+     * @param {*} values
+     * @returns
      */
+    static arrayIncludesAll(sourceArray, values) {
+        for (let value of values) {
+            if (!sourceArray.includes(value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 判断数组是否 **不存在** 指定的值。
+     *
+     * @param {*} sourceArray
+     * @param {*} value
+     * @returns
+     */
+    static arrayAbsents(sourceArray, value) {
+        return !sourceArray.includes(value);
+    }
+
+    /**
+     * 判断数组是否 **不存在** 所有指定的值。
+     *
+     * @param {*} sourceArray
+     * @param {*} values
+     * @returns
+     */
+    static arrayAbsentsAll(sourceArray, values) {
+        for (let value of values) {
+            if (!ObjectUtils.arrayAbsents(sourceArray, value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * 通过名称路径（name path）获取对象的属性值。
@@ -675,13 +840,13 @@ class ObjectUtils {
      * 属性 “foo” 的名称路径为 “foo”，
      * 属性 “bar” 的名称路径为 “foo.bar”，
      *
-     * @param {*} obj
+     * @param {*} sourceObject
      * @param {*} namePath
      * @returns
      */
-    static getPropertyValueByNamePath(obj, namePath) {
+    static getPropertyValueByNamePath(sourceObject, namePath) {
         let names = namePath.split('.');
-        let value = obj;
+        let value = sourceObject;
         while (value !== undefined && names.length > 0) {
             let name = names.shift();
             value = value[name];
@@ -702,7 +867,7 @@ class ObjectUtils {
     }
 
     /**
-     * 判断一个变量是否为 “{...}” 对象
+     * 判断一个变量是否为数据对象（“{...}” 对象）
      *
      * @param {*} obj
      * @returns
@@ -730,46 +895,65 @@ class ObjectUtils {
      * @param {*} referenceKeyValues
      * @returns 返回新的对象
      */
-    static removePropertiesByKeyValues(sourceObject, referenceKeyValues) {
+    static removePropertiesByMatchedKeyValues(sourceObject, referenceKeyValues) {
         // 'referenceKeyValues' 是一个参考对象，比如：
         // {
         //   someKey: soemValue,
         //   ...
         // }
         //
-        // 当 sourceObject 出现 someKey 时，相应的条目将被删除（delete）
+        // 当 sourceObject 出现 key 和 value 都一致的条目时，相应的条目将被删除（delete）
 
         let clonedSourceObject = ObjectUtils.objectClone(sourceObject);
         let referenceKeys = Object.keys(referenceKeyValues);
 
         for (let referenceKey of referenceKeys) {
-            let sourceValue = clonedSourceObject[referenceKey];
             let referenceValue = referenceKeyValues[referenceKey];
+            let sourceValue = clonedSourceObject[referenceKey];
 
             if (sourceValue === undefined) {
-                // sourceObject 不存在指定的 referenceKey，跳过
+                if (referenceValue === undefined) {
+                    delete clonedSourceObject[referenceKey];
+                }
                 continue;
             }
 
-            if (Array.isArray(sourceValue) && Array.isArray(referenceValue)) {
-                if (ObjectUtils.arrayEquals(sourceValue, referenceValue)) {
+            if (Array.isArray(sourceValue)) {
+                if (Array.isArray(referenceValue) &&
+                    ObjectUtils.arrayEquals(sourceValue, referenceValue)) {
                     // 仅当深度比较两个数组相等时，才删除相应的条目
                     delete clonedSourceObject[referenceKey];
                 }
+                continue;
+            }
 
-            } else if (typeof sourceValue === 'object' && typeof referenceValue === 'object') {
-                // 递归删除子对象的 keyValues
-
-                let clearObject = ObjectUtils.removePropertiesByKeyValues(sourceValue, referenceValue);
-                if (ObjectUtils.isEmpty(clearObject)) {
-                    // 删除空的对象
+            if (sourceValue instanceof Date) {
+                if (referenceValue instanceof Date &&
+                    ObjectUtils.dateEquals(sourceValue, referenceValue)) {
                     delete clonedSourceObject[referenceKey];
-                } else {
-                    clonedSourceObject[referenceKey] = clearObject;
                 }
 
-            } else if (sourceValue === referenceValue) {
-                // 值完全相等时才删除相应的条目
+                continue;
+            }
+
+            if (typeof sourceValue === 'object') {
+                if (ObjectUtils.isObject(referenceValue)){
+                    // 递归删除子对象当中匹配中的 keyValues
+                    let clearObject = ObjectUtils.removePropertiesByMatchedKeyValues(sourceValue, referenceValue);
+                    if (ObjectUtils.isEmpty(clearObject)) {
+                        // 子对象完全相等，删除当前的 key
+                        delete clonedSourceObject[referenceKey];
+
+                    } else {
+                        // 子对象不完全相等，替换当前 key 的值为已经删除部分 keyValues 的子对象。
+                        clonedSourceObject[referenceKey] = clearObject;
+                    }
+                }
+                continue;
+            }
+
+            if (sourceValue === referenceValue) {
+                // 值为基本数据类型，且值完全相等的条目
                 delete clonedSourceObject[referenceKey];
             }
         }
@@ -831,20 +1015,6 @@ class ObjectUtils {
         return items;
     }
 
-    /**
-     * 挑选对象中指定名称的 keyValues 并形成一个新的对象
-     *
-     * @param {*} sourceObject
-     * @param {*} keys
-     */
-    static pickUpKeyValues(sourceObject, keys) {
-        let targetObject = {};
-        for (let key of keys) {
-            targetObject[key] = sourceObject[key];
-        }
-
-        return targetObject;
-    }
 }
 
 module.exports = ObjectUtils;
