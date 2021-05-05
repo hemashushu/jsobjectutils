@@ -1,5 +1,7 @@
 /**
  * 对纯数据类型的 Object 和 Array 的一些常用操作。
+ *
+ * Some common operations on the pure data types Object and Array.
  */
 class ObjectUtils {
 
@@ -8,18 +10,32 @@ class ObjectUtils {
      *
      * sourceObject 的所有 keyValue 会被直接复制到 targetObject（输出对象），
      *
-     * defaultObject 的 keyValue 仅当：
+     * defaultObject 的 keyValue 也会被复制到 targetObject 仅当：
      * 1. sourceObject 不存在相应的 key；
      * 2. sourceObject 存在相应的 key，但值为 undefined（注意不是 null）；
      *
-     * 才被复制到 targetObject。
-     *
      * 如果某个 key 的值为 function 类型，其值会被替换为 undefined。
      *
+     * - - -
+     * Merging two objects of pure data type
+     *
+     * all keyValue of sourceObject will be copied directly to
+     * targetObject (output object), and
+     *
+     * The keyValue of defaultObject will also be copied to targetObject only if.
+     * 1. the corresponding key does not exist for the sourceObject.
+     * 2. the corresponding key exists for the sourceObject, but the
+     * value is undefined (note that it is not null).
+     *
+     * If the type of the value of a key is 'function', the value
+     * will be replaced with undefined.
+     *
      * @param {*} sourceObject 源对象，keyValue 被优先保留的对象。
+     *     The source object, the object whose keyValue is reserved first.
      * @param {*} defaultObject 默认对象，keyValue 作为后备（补充）的对象。
+     *     The default object, with the keyValue as the fallback object.
      * @param {*} keyValueModifyFuncs 值修改方法
-     * @param {*}
+     *     Value modification method
      * @returns
      */
     static objectMerge(sourceObject, defaultObject, keyValueModifyFuncs) {
@@ -895,7 +911,7 @@ class ObjectUtils {
      * @param {*} referenceKeyValues
      * @returns 返回新的对象
      */
-    static removePropertiesByMatchedKeyValues(sourceObject, referenceKeyValues) {
+    static removePropertiesByKeyValues(sourceObject, referenceKeyValues) {
         // 'referenceKeyValues' 是一个参考对象，比如：
         // {
         //   someKey: soemValue,
@@ -939,7 +955,7 @@ class ObjectUtils {
             if (typeof sourceValue === 'object') {
                 if (ObjectUtils.isObject(referenceValue)){
                     // 递归删除子对象当中匹配中的 keyValues
-                    let clearObject = ObjectUtils.removePropertiesByMatchedKeyValues(sourceValue, referenceValue);
+                    let clearObject = ObjectUtils.removePropertiesByKeyValues(sourceValue, referenceValue);
                     if (ObjectUtils.isEmpty(clearObject)) {
                         // 子对象完全相等，删除当前的 key
                         delete clonedSourceObject[referenceKey];

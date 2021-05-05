@@ -153,10 +153,42 @@ describe('ObjectUtils Test', () => {
 
     describe('Test collapseKeyValueArray()', () => {
         it('Base',() => {
-            let a = [{key: 'id', value: 123}, {key: 'name', value: 'foobar'}];
+            let a = [
+                {key: 'id', value: 123},
+                {key: 'name', value: 'foobar'}
+            ];
             let obj = ObjectUtils.collapseKeyValueArray(a, 'key', 'value');
 
             assert(ObjectUtils.objectEquals(obj, {id: 123, name: 'foobar'}));
+        });
+    });
+
+    describe('Test expandKeyValueObject()', ()=>{
+        it('Base', ()=>{
+            let obj = {id: 123, name: 'foobar'};
+            let a = ObjectUtils.expandKeyValueObject(obj, 'key', 'value');
+
+            assert(ObjectUtils.arrayEquals(a, [
+                {key: 'id', value: 123},
+                {key: 'name', value: 'foobar'}
+            ]));
+        });
+    });
+
+    describe('Test isObject()', ()=>{
+        it('Base', ()=>{
+            assert(!ObjectUtils.isObject(undefined));
+            assert(!ObjectUtils.isObject([1,2,3]));
+            assert(!ObjectUtils.isObject(null));
+            assert(!ObjectUtils.isObject(new Date()));
+
+            assert(ObjectUtils.isObject({}));
+            assert(ObjectUtils.isObject({name: 'foo'}));
+
+            assert(!ObjectUtils.isObject(123));
+            assert(!ObjectUtils.isObject('abc'));
+            assert(!ObjectUtils.isObject(true));
+            assert(!ObjectUtils.isObject(function(){}));
         });
     });
 
