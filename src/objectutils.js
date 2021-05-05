@@ -347,7 +347,6 @@ class ObjectUtils {
      *
      * @param {*} sourceArray
      * @param {*} keyValueModifyFuncs
-     * @param {*} _internalKeyNamePath
      * @returns
      */
     static arrayClone(sourceArray, keyValueModifyFuncs) {
@@ -361,7 +360,7 @@ class ObjectUtils {
 
         let targetArray = [];
         for (let item of sourceArray) {
-            targetArray.push(ObjectUtils._clone(item, elementNamePath));
+            targetArray.push(ObjectUtils._clone(item, keyValueModifyFuncs, elementNamePath));
         }
 
         return targetArray;
@@ -371,14 +370,15 @@ class ObjectUtils {
      * 深度 clone 一个对象或数组。
      *
      * @param {*} source
+     * @param {*} keyValueModifyFuncs
      * @returns
      */
-    static clone(source) {
-        return ObjectUtils._clone(source);
+    static clone(source, keyValueModifyFuncs) {
+        return ObjectUtils._clone(source, keyValueModifyFuncs);
     }
 
     // PRIVATE
-    static _clone(source, namePath) {
+    static _clone(source, keyValueModifyFuncs, namePath) {
         let target;
 
         if (source === undefined) {
