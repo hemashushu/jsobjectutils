@@ -11,9 +11,8 @@
     "url": "git+https://github.com/hemashushu/jsobjectutils.git"
   },
   "keywords": [
-    "digital",
-    "circuit",
-    "logic"
+    "utility",
+    "object"
   ],
   "author": "Hippo Spark <hippospark@gmail.com> (https://twitter.com/hemashushu)",
   "license": "SEE LICENSE IN <LICENSE.md>",

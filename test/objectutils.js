@@ -1,6 +1,6 @@
-const ObjectUtils = require('../src/objectutils');
+const assert = require('assert/strict');
 
-var assert = require('assert/strict');
+const ObjectUtils = require('../src/objectutils');
 
 describe('ObjectUtils Test', () => {
 
