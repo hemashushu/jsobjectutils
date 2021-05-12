@@ -1,5 +1,5 @@
 # JSObjectUtils
 
-Some utilities for JavaScript built-in objects, such as merge, deep clone, comparison etc.
+Some common functions used for JavaScript built-in objects, such as object cloning, merging, comparing, etc.
 
-一些针对 JavaScript 内置对象的辅助工具，比如合并、克隆、比较等。
+一些常用的针对 JavaScript 内置对象所使用的函数，比如对象的克隆、合并、比较等。

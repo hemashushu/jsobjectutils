@@ -4,44 +4,40 @@ const ObjectUtils = require('../src/objectutils');
 
 describe('ObjectUtils Test', () => {
 
-    describe('Test isObject()', () => {
-        it('Base', () => {
-            assert(!ObjectUtils.isObject(undefined));
-            assert(!ObjectUtils.isObject([1, 2, 3]));
-            assert(!ObjectUtils.isObject(null));
-            assert(!ObjectUtils.isObject(new Date()));
+    it('Test isObject()', () => {
+        assert(!ObjectUtils.isObject(undefined));
+        assert(!ObjectUtils.isObject([1, 2, 3]));
+        assert(!ObjectUtils.isObject(null));
+        assert(!ObjectUtils.isObject(new Date()));
 
-            assert(ObjectUtils.isObject({}));
-            assert(ObjectUtils.isObject({ name: 'foo' }));
+        assert(ObjectUtils.isObject({}));
+        assert(ObjectUtils.isObject({ name: 'foo' }));
 
-            assert(!ObjectUtils.isObject(123));
-            assert(!ObjectUtils.isObject('abc'));
-            assert(!ObjectUtils.isObject(true));
-            assert(!ObjectUtils.isObject(function () { }));
-        });
+        assert(!ObjectUtils.isObject(123));
+        assert(!ObjectUtils.isObject('abc'));
+        assert(!ObjectUtils.isObject(true));
+        assert(!ObjectUtils.isObject(function () { }));
     });
 
-    describe('Test isEmpty()', () => {
-        it('Base', () => {
-            let o1 = {
-                id: 123,
-                name: 'foo'
-            };
+    it('Test isEmpty()', () => {
+        let o1 = {
+            id: 123,
+            name: 'foo'
+        };
 
-            let o2 = {};
+        let o2 = {};
 
-            assert(!ObjectUtils.isEmpty(o1));
-            assert(ObjectUtils.isEmpty(o2));
+        assert(!ObjectUtils.isEmpty(o1));
+        assert(ObjectUtils.isEmpty(o2));
 
-            o2.id = 456;
-            assert(!ObjectUtils.isEmpty(o2));
+        o2.id = 456;
+        assert(!ObjectUtils.isEmpty(o2));
 
-            o2.id = undefined;
-            assert(!ObjectUtils.isEmpty(o2));
+        o2.id = undefined;
+        assert(!ObjectUtils.isEmpty(o2));
 
-            delete o2.id;
-            assert(ObjectUtils.isEmpty(o2));
-        });
+        delete o2.id;
+        assert(ObjectUtils.isEmpty(o2));
     });
 
     describe('Test objectEquals()', () => {
@@ -191,53 +187,47 @@ describe('ObjectUtils Test', () => {
         });
     });
 
-    describe('Test dateEquals()', () => {
-        it('Base', () => {
-            let d1 = new Date(1);
-            let d2 = new Date(2);
-            let d3 = new Date(2);
+    it('Test dateEquals()', () => {
+        let d1 = new Date(1);
+        let d2 = new Date(2);
+        let d3 = new Date(2);
 
-            assert(!ObjectUtils.dateEquals(d1, d2));
-            assert(ObjectUtils.dateEquals(d2, d3));
-        });
+        assert(!ObjectUtils.dateEquals(d1, d2));
+        assert(ObjectUtils.dateEquals(d2, d3));
     });
 
-    describe('Test equals()', () => {
-        it('Base', () => {
-            let o1 = { id: 123, name: 'foo' };
-            let o2 = { id: 123, name: 'foo' };
-            let o3 = { id: 123, name: 'bar' };
+    it('Test equals()', () => {
+        let o1 = { id: 123, name: 'foo' };
+        let o2 = { id: 123, name: 'foo' };
+        let o3 = { id: 123, name: 'bar' };
 
-            let a1 = [1, 2, 3];
-            let a2 = [1, 2, 3];
-            let a3 = [2, 3, 4];
+        let a1 = [1, 2, 3];
+        let a2 = [1, 2, 3];
+        let a3 = [2, 3, 4];
 
-            let d1 = new Date(1);
-            let d2 = new Date(1);
-            let d3 = new Date(2);
+        let d1 = new Date(1);
+        let d2 = new Date(1);
+        let d3 = new Date(2);
 
-            assert(ObjectUtils.equals(o1, o2));
-            assert(!ObjectUtils.equals(o1, o3));
+        assert(ObjectUtils.equals(o1, o2));
+        assert(!ObjectUtils.equals(o1, o3));
 
-            assert(ObjectUtils.equals(a1, a2));
-            assert(!ObjectUtils.equals(a1, a3));
+        assert(ObjectUtils.equals(a1, a2));
+        assert(!ObjectUtils.equals(a1, a3));
 
-            assert(ObjectUtils.equals(d1, d2));
-            assert(!ObjectUtils.equals(d1, d3));
+        assert(ObjectUtils.equals(d1, d2));
+        assert(!ObjectUtils.equals(d1, d3));
 
-            assert(!ObjectUtils.equals(o1, a1));
-            assert(!ObjectUtils.equals(o1, d1));
-            assert(!ObjectUtils.equals(a1, d1));
-        });
+        assert(!ObjectUtils.equals(o1, a1));
+        assert(!ObjectUtils.equals(o1, d1));
+        assert(!ObjectUtils.equals(a1, d1));
     });
 
-    describe('Test dateClone()', () => {
-        it('Base', () => {
-            let d1 = new Date(1);
-            let d2 = ObjectUtils.dateClone(d1);
+    it('Test dateClone()', () => {
+        let d1 = new Date(1);
+        let d2 = ObjectUtils.dateClone(d1);
 
-            assert(ObjectUtils.dateEquals(d1, d2));
-        });
+        assert(ObjectUtils.dateEquals(d1, d2));
     });
 
     describe('Test arrayCombine()', () => {
@@ -266,22 +256,20 @@ describe('ObjectUtils Test', () => {
         });
     });
 
-    describe('Test arrayConcat()', () => {
-        it('Base', () => {
-            let a1 = [2, 3, 4];
-            let a2 = [3, 4, 5];
-            let a3 = [4, 5, 6];
+    it('Test arrayConcat()', () => {
+        let a1 = [2, 3, 4];
+        let a2 = [3, 4, 5];
+        let a3 = [4, 5, 6];
 
-            let c1 = ObjectUtils.arrayConcat(a1, a2);
-            assert(ObjectUtils.arrayEquals(c1, [2, 3, 4, 3, 4, 5]));
+        let c1 = ObjectUtils.arrayConcat(a1, a2);
+        assert(ObjectUtils.arrayEquals(c1, [2, 3, 4, 3, 4, 5]));
 
-            let c2 = ObjectUtils.arrayConcat(a1, a2, a3);
-            assert(ObjectUtils.arrayEquals(c2,
-                [2, 3, 4, 3, 4, 5, 4, 5, 6]));
-        });
+        let c2 = ObjectUtils.arrayConcat(a1, a2, a3);
+        assert(ObjectUtils.arrayEquals(c2,
+            [2, 3, 4, 3, 4, 5, 4, 5, 6]));
     });
 
-    describe('Test arraySubtract()', () => {
+    it('Test arraySubtract()', () => {
         let a1 = [2, 3, 4, 4, 5, 5, 6, 7, 8];
 
         let a2 = [9, 0];
@@ -301,103 +289,89 @@ describe('ObjectUtils Test', () => {
         assert(ObjectUtils.arrayEquals(s4, [6, 7, 8]));
     });
 
-    describe('Test arrayAddItems()', () => {
-        it('Base', () => {
-            let a1 = [2, 3, 4];
+    it('Test arrayAddItems()', () => {
+        let a1 = [2, 3, 4];
 
-            let i1 = ObjectUtils.arrayAddItems(a1, 3, 4, 5);
-            assert(ObjectUtils.arrayEquals(i1, [2, 3, 4, 3, 4, 5]));
+        let i1 = ObjectUtils.arrayAddItems(a1, 3, 4, 5);
+        assert(ObjectUtils.arrayEquals(i1, [2, 3, 4, 3, 4, 5]));
 
-            let i2 = ObjectUtils.arrayAddItems(a1, 'foo', 'bar');
-            assert(ObjectUtils.arrayEquals(i2, [2, 3, 4, 'foo', 'bar']));
-        });
+        let i2 = ObjectUtils.arrayAddItems(a1, 'foo', 'bar');
+        assert(ObjectUtils.arrayEquals(i2, [2, 3, 4, 'foo', 'bar']));
     });
 
-    describe('Test arrayRemoveItems()', () => {
-        it('Base', () => {
-            let a1 = [2, 3, 4, 4, 5, 5, 6, 7, 8];
+    it('Test arrayRemoveItems()', () => {
+        let a1 = [2, 3, 4, 4, 5, 5, 6, 7, 8];
 
-            let r1 = ObjectUtils.arrayRemoveItems(a1, 9, 0);
-            assert(ObjectUtils.arrayEquals(r1, a1));
+        let r1 = ObjectUtils.arrayRemoveItems(a1, 9, 0);
+        assert(ObjectUtils.arrayEquals(r1, a1));
 
-            let i2 = ObjectUtils.arrayRemoveItems(a1, 3, 4, 5, 6);
-            assert(ObjectUtils.arrayEquals(i2, [2, 7, 8]));
-        });
+        let i2 = ObjectUtils.arrayRemoveItems(a1, 3, 4, 5, 6);
+        assert(ObjectUtils.arrayEquals(i2, [2, 7, 8]));
     });
 
-    describe('Test arrayDiff()', () => {
-        it('Base', () => {
-            let a1 = [2, 3, 4, 5];
-            let a2 = [4, 5, 6, 7];
+    it('Test arrayDiff()', () => {
+        let a1 = [2, 3, 4, 5];
+        let a2 = [4, 5, 6, 7];
 
-            let d1 = ObjectUtils.arrayDiff(a1, a2);
-            assert(ObjectUtils.arrayEquals(d1.addedItems, [6, 7]));
-            assert(ObjectUtils.arrayEquals(d1.removedItems, [2, 3]));
+        let d1 = ObjectUtils.arrayDiff(a1, a2);
+        assert(ObjectUtils.arrayEquals(d1.addedItems, [6, 7]));
+        assert(ObjectUtils.arrayEquals(d1.removedItems, [2, 3]));
 
-            let a3 = [2, 3, 3, 4, 4, 5];
-            let a4 = [3, 4, 5, 6];
+        let a3 = [2, 3, 3, 4, 4, 5];
+        let a4 = [3, 4, 5, 6];
 
-            let d2 = ObjectUtils.arrayDiff(a3, a4);
-            assert(ObjectUtils.arrayEquals(d2.addedItems, [6]));
-            assert(ObjectUtils.arrayEquals(d2.removedItems, [2]));
-        });
+        let d2 = ObjectUtils.arrayDiff(a3, a4);
+        assert(ObjectUtils.arrayEquals(d2.addedItems, [6]));
+        assert(ObjectUtils.arrayEquals(d2.removedItems, [2]));
     });
 
-    describe('Test arrayIncludesAll()', () => {
-        it('Base', () => {
-            let a = [1, 2, 3, 4];
+    it('Test arrayIncludesAll()', () => {
+        let a = [1, 2, 3, 4];
 
-            assert(ObjectUtils.arrayIncludesAll(a, [1, 2, 3, 4]));
-            assert(ObjectUtils.arrayIncludesAll(a, [2, 3]));
+        assert(ObjectUtils.arrayIncludesAll(a, [1, 2, 3, 4]));
+        assert(ObjectUtils.arrayIncludesAll(a, [2, 3]));
 
-            assert(!ObjectUtils.arrayIncludesAll(a, [3, 4, 5, 6]));
-            assert(!ObjectUtils.arrayIncludesAll(a, [5, 6]));
-        });
+        assert(!ObjectUtils.arrayIncludesAll(a, [3, 4, 5, 6]));
+        assert(!ObjectUtils.arrayIncludesAll(a, [5, 6]));
     });
 
-    describe('Test arrayAbsents()', () => {
-        it('Base', () => {
-            let a = [1, 2, 3, 4];
+    it('Test arrayAbsents()', () => {
+        let a = [1, 2, 3, 4];
 
-            assert(ObjectUtils.arrayAbsents(a, 5));
-            assert(ObjectUtils.arrayAbsents(a, 'a'));
+        assert(ObjectUtils.arrayAbsents(a, 5));
+        assert(ObjectUtils.arrayAbsents(a, 'a'));
 
-            assert(!ObjectUtils.arrayAbsents(a, 1));
-            assert(!ObjectUtils.arrayAbsents(a, 3));
-        });
+        assert(!ObjectUtils.arrayAbsents(a, 1));
+        assert(!ObjectUtils.arrayAbsents(a, 3));
     });
 
-    describe('Test arrayAbsentsAll()', () => {
-        it('Base', () => {
-            let a = [1, 2, 3, 4];
+    it('Test arrayAbsentsAll()', () => {
+        let a = [1, 2, 3, 4];
 
-            assert(ObjectUtils.arrayAbsentsAll(a, [5, 6]));
-            assert(ObjectUtils.arrayAbsentsAll(a, ['a', 'b']));
+        assert(ObjectUtils.arrayAbsentsAll(a, [5, 6]));
+        assert(ObjectUtils.arrayAbsentsAll(a, ['a', 'b']));
 
-            assert(!ObjectUtils.arrayAbsentsAll(a, [1, 3]));
-            assert(!ObjectUtils.arrayAbsentsAll(a, [3, 5, 6]));
-        });
+        assert(!ObjectUtils.arrayAbsentsAll(a, [1, 3]));
+        assert(!ObjectUtils.arrayAbsentsAll(a, [3, 5, 6]));
     });
 
-    describe('Test getPropertyValueByNamePath()', () => {
-        it('Base', () => {
-            let a = {
-                id: 123,
-                addr: {
-                    city: 'abc',
-                    street: 'xyz'
-                },
-                name: 'foobar'
-            };
+    it('Test getPropertyValueByNamePath()', () => {
+        let a = {
+            id: 123,
+            addr: {
+                city: 'abc',
+                street: 'xyz'
+            },
+            name: 'foobar'
+        };
 
-            assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'id'), 123);
-            assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'name'), 'foobar');
-            assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'addr.city'), 'abc');
-            assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'addr.street'), 'xyz');
+        assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'id'), 123);
+        assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'name'), 'foobar');
+        assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'addr.city'), 'abc');
+        assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'addr.street'), 'xyz');
 
-            assert(ObjectUtils.getPropertyValueByNamePath(a, 'no') === undefined);
-            assert(ObjectUtils.getPropertyValueByNamePath(a, 'no.way') === undefined);
-        });
+        assert(ObjectUtils.getPropertyValueByNamePath(a, 'no') === undefined);
+        assert(ObjectUtils.getPropertyValueByNamePath(a, 'no.way') === undefined);
     });
 
     describe('Test removePropertiesByKeyValues()', () => {
@@ -455,28 +429,24 @@ describe('ObjectUtils Test', () => {
         });
     });
 
-    describe('Test collapseKeyValueArray()', () => {
-        it('Base', () => {
-            let a = [
-                { key: 'id', value: 123 },
-                { key: 'name', value: 'foobar' }
-            ];
-            let obj = ObjectUtils.collapseKeyValueArray(a, 'key', 'value');
+    it('Test collapseKeyValueArray()', () => {
+        let a = [
+            { key: 'id', value: 123 },
+            { key: 'name', value: 'foobar' }
+        ];
+        let obj = ObjectUtils.collapseKeyValueArray(a, 'key', 'value');
 
-            assert(ObjectUtils.objectEquals(obj, { id: 123, name: 'foobar' }));
-        });
+        assert(ObjectUtils.objectEquals(obj, { id: 123, name: 'foobar' }));
     });
 
-    describe('Test expandKeyValueObject()', () => {
-        it('Base', () => {
-            let obj = { id: 123, name: 'foobar' };
-            let a = ObjectUtils.expandKeyValueObject(obj, 'key', 'value');
+    it('Test expandKeyValueObject()', () => {
+        let obj = { id: 123, name: 'foobar' };
+        let a = ObjectUtils.expandKeyValueObject(obj, 'key', 'value');
 
-            assert(ObjectUtils.arrayEquals(a, [
-                { key: 'id', value: 123 },
-                { key: 'name', value: 'foobar' }
-            ]));
-        });
+        assert(ObjectUtils.arrayEquals(a, [
+            { key: 'id', value: 123 },
+            { key: 'name', value: 'foobar' }
+        ]));
     });
 
     describe('Test objectMerge()', () => {
@@ -743,7 +713,7 @@ describe('ObjectUtils Test', () => {
         });
     });
 
-    describe('Test clone()', () => {
+    it('Test clone()', () => {
         let o1 = { id: 123 };
         let a1 = [1, 2, 3];
 
@@ -754,7 +724,7 @@ describe('ObjectUtils Test', () => {
         assert(ObjectUtils.equals(c2, a1));
     });
 
-    describe('Test pruneObject()', () => {
+    it('Test pruneObject()', () => {
         let o1 = {
             id: 123,
             name: 'foo',
