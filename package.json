@@ -2,7 +2,7 @@
   "name": "jsobjectutils",
   "version": "1.0.0",
   "description": "",
-  "main": "src/objectutils.js",
+  "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
