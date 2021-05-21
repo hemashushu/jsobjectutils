@@ -791,26 +791,33 @@ class ObjectUtils {
      *
      * 如果某个 key 的值为 function 类型，其值会被替换为 undefined。
      *
-     * - - -
-     * Merging two objects of pure data type
+     * ## 对比 Object.assign 方法
      *
-     * all keyValue of sourceObject will be copied directly to
-     * targetObject (output object), and
+     * - Object.assign 只复制对象的自有属性，即只复制第一层属性，对于
+     *   属性值为对象的（即子对象）则直接赋值，即 Object.assign 实现的是
+     *   浅复制，而 ObjectUtils.objectMerge 是 Deep Clone。
+     * - 当使用 Object.assign({}, defaultObject, userObject) 方法
+     *   合并用户设置对象和默认值对象时，会把 userObject 值为 undefined 的属性
+     *   一起覆盖 defaultObject，通常这不是我们期望的结果。
      *
-     * The keyValue of defaultObject will also be copied to targetObject only if.
-     * 1. the corresponding key does not exist for the sourceObject.
-     * 2. the corresponding key exists for the sourceObject, but the
-     * value is undefined (note that it is not null).
+     * 比如:
+     * defaultObject:
+     *   {a: 123, b: 'foo'}
      *
-     * If the type of the value of a key is 'function', the value
-     * will be replaced with undefined.
+     * userObject:
+     *   {a: 456, b: undefined}
+     *
+     * Object.assign({}, defaultObject, userObject) 的结果是:
+     *   {a: 456, b: undefined }
+     *
+     * 而 ObjectUtils.objectMerge(userObject, defaultObject) 的结果是:
+     *   {a: 456, b: 'foo'}
+     *
+     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
      *
      * @param {*} sourceObject 源对象，keyValue 被优先保留的对象。
-     *     The source object, the object whose keyValue is reserved first.
      * @param {*} defaultObject 默认对象，keyValue 作为后备（补充）的对象。
-     *     The default object, with the keyValue as the fallback object.
      * @param {*} keyValueModifyFuncs 值修改方法的映射。
-     *     The map of the value modification methods.
      * @returns
      */
     static objectMerge(sourceObject, defaultObject, keyValueModifyFuncs) {

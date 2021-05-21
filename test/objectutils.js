@@ -472,6 +472,69 @@ describe('ObjectUtils Test', () => {
             }));
         });
 
+        it('Merge default values', ()=> {
+            let defaultObject1 = {
+                id: 123,
+                name: 'foo',
+                checked: true
+            };
+
+            // user object is empty
+            let userObject1 = {};
+
+            let m1 = ObjectUtils.objectMerge(userObject1, defaultObject1);
+
+            assert(ObjectUtils.objectEquals(m1, {
+                id: 123,
+                name: 'foo',
+                checked: true
+            }));
+
+            // user object contains undefined value
+            let userObject2 = {
+                id: 456,
+                name: undefined,
+                checked: null
+            };
+
+            let m2 = ObjectUtils.objectMerge(userObject2, defaultObject1);
+
+            assert(ObjectUtils.objectEquals(m2, {
+                id: 456,
+                name: 'foo',
+                checked: null
+            }));
+
+            // compare to Object.assign()
+            let m2b = Object.assign({}, defaultObject1, userObject2);
+            assert(ObjectUtils.objectEquals(m2b, {
+                id: 456,
+                name: undefined,
+                checked: null
+            }));
+
+            // undefined value in the default object
+            let defaultObject2 = {
+                id: 123,
+                name: undefined,
+                checked: null
+            };
+
+            let userObject3 = {
+                id: 456,
+                name: 'bar',
+                checked: true
+            };
+
+            let m3 = ObjectUtils.objectMerge(userObject3, defaultObject2);
+
+            assert(ObjectUtils.objectEquals(m3, {
+                id: 456,
+                name: 'bar',
+                checked: true
+            }));
+        });
+
         it('Deep', () => {
             let o1 = {
                 id: 123,
