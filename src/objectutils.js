@@ -375,7 +375,7 @@ class ObjectUtils {
     }
 
     // PRIVATE
-    static _arrayCombine(sourceArray, defaultArray, keyValueModifyFuncs, arrayNamePath) {
+    static _arrayCombine(sourceArray, defaultArray, keyValueModifyFuncs, internal_array_name_path) {
 
         // 当一个对象里的某个 key 的值为 Array 时，而 Array 里的元素又
         // 是一个对象时，比如：
@@ -397,12 +397,12 @@ class ObjectUtils {
         //
         // "bar" 的名称路径为 "foo.[].[].bar"
 
-        let elementNamePath = (arrayNamePath === undefined) ?
-            '[]' : arrayNamePath + '.' + '[]';
+        let elementNamePath = (internal_array_name_path === undefined) ?
+            '[]' : internal_array_name_path + '.' + '[]';
 
         // 为防止源数组被修改，deep clone 一份源数组。
         // 当应用于不需要态严谨的场合时，这里也可以使用 sourceArray.slice() 进行浅 clone
-        let targetArray = ObjectUtils._arrayClone(sourceArray, keyValueModifyFuncs, arrayNamePath);
+        let targetArray = ObjectUtils._arrayClone(sourceArray, keyValueModifyFuncs, internal_array_name_path);
 
         let sourceArrayLength = sourceArray.length;
 
@@ -825,7 +825,7 @@ class ObjectUtils {
     }
 
     // PRIVATE
-    static _objectMerge(sourceObject, defaultObject, keyValueModifyFuncs, objectNamePath) {
+    static _objectMerge(sourceObject, defaultObject, keyValueModifyFuncs, internal_object_name_path) {
         let targetObject = {};
 
         // ## keyValueModifyFuncs：
@@ -853,7 +853,7 @@ class ObjectUtils {
         //     'addr.city': (oldValue2) => {return 'newValue2';}
         // }
 
-        // ## objectNamePath:
+        // ## internal_object_name_path:
         //
         // 当前对象的 name path，内部使用的参数
 
@@ -872,8 +872,8 @@ class ObjectUtils {
             let sourceValueType = typeof (sourceValue);
 
             // 构建当前 key 的名称路径（name path）
-            let keyNamePath = (objectNamePath === undefined) ?
-                sourceObjectKey : objectNamePath + '.' + sourceObjectKey;
+            let keyNamePath = (internal_object_name_path === undefined) ?
+                sourceObjectKey : internal_object_name_path + '.' + sourceObjectKey;
 
             if (keyValueModifyFuncs !== undefined) {
                 let keyValueModifyFunc = keyValueModifyFuncs[keyNamePath];
@@ -952,8 +952,8 @@ class ObjectUtils {
             let defaultValue = defaultObject[defaultObjectKey];
             let defaultValueType = typeof (defaultValue);
 
-            let keyNamePath = (objectNamePath === undefined) ?
-                defaultObjectKey : objectNamePath + '.' + defaultObjectKey;
+            let keyNamePath = (internal_object_name_path === undefined) ?
+                defaultObjectKey : internal_object_name_path + '.' + defaultObjectKey;
 
             if (defaultValue === undefined) {
                 // 默认值为 undefined
@@ -1006,9 +1006,9 @@ class ObjectUtils {
     }
 
     // PRIVATE
-    static _objectClone(sourceObject, keyValueModifyFuncs, objectNamePath) {
+    static _objectClone(sourceObject, keyValueModifyFuncs, internal_object_name_path) {
         return ObjectUtils._objectMerge(
-            sourceObject, {}, keyValueModifyFuncs, objectNamePath);
+            sourceObject, {}, keyValueModifyFuncs, internal_object_name_path);
     }
 
     /**
@@ -1023,9 +1023,9 @@ class ObjectUtils {
     }
 
     // PRIVATE
-    static _arrayClone(sourceArray, keyValueModifyFuncs, arrayNamePath) {
-        let elementNamePath = (arrayNamePath === undefined) ?
-            '[]' : arrayNamePath + '.' + '[]';
+    static _arrayClone(sourceArray, keyValueModifyFuncs, internal_array_name_path) {
+        let elementNamePath = (internal_array_name_path === undefined) ?
+            '[]' : internal_array_name_path + '.' + '[]';
 
         let targetArray = [];
         for (let item of sourceArray) {
@@ -1047,14 +1047,14 @@ class ObjectUtils {
     }
 
     // PRIVATE
-    static _clone(source, keyValueModifyFuncs, namePath) {
+    static _clone(source, keyValueModifyFuncs, internal_name_path) {
         let target;
 
         if (source === undefined) {
             //
         } else if (Array.isArray()) {
             target = ObjectUtils._arrayClone(
-                source, keyValueModifyFuncs, namePath);
+                source, keyValueModifyFuncs, internal_name_path);
 
         } else if (source === null) {
             target = null;
@@ -1064,7 +1064,7 @@ class ObjectUtils {
 
         } else if (typeof source === 'object') {
             target = ObjectUtils._objectClone(
-                source, keyValueModifyFuncs, namePath);
+                source, keyValueModifyFuncs, internal_name_path);
 
         } else if (typeof source === 'function') {
             //
