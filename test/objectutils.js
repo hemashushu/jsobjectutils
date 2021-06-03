@@ -374,6 +374,111 @@ describe('ObjectUtils Test', () => {
         assert(ObjectUtils.getPropertyValueByNamePath(a, 'no.way') === undefined);
     });
 
+    it('Test splitNamePath()', ()=>{
+        let ns1 = ObjectUtils.splitNamePath('foo');
+        assert(ObjectUtils.arrayEquals(ns1, ['foo']));
+
+        let ns2 = ObjectUtils.splitNamePath('foo.bar');
+        assert(ObjectUtils.arrayEquals(ns2, ['foo', 'bar']));
+
+        let ns3 = ObjectUtils.splitNamePath('foo.bar.hello');
+        assert(ObjectUtils.arrayEquals(ns3, ['foo', 'bar', 'hello']));
+
+        // 带单引号
+        let ns4 = ObjectUtils.splitNamePath('\'foo\'');
+        assert(ObjectUtils.arrayEquals(ns4, ['foo']));
+
+        let ns5 = ObjectUtils.splitNamePath('\'foo\'.\'bar"bar\'');
+        assert(ObjectUtils.arrayEquals(ns5, ['foo', 'bar"bar']));
+
+        let ns6 = ObjectUtils.splitNamePath('\'foo\'.\'bar"bar\'.\'hello# \'\'., world!\'');
+        assert(ObjectUtils.arrayEquals(ns6, ['foo', 'bar"bar', 'hello# \'., world!']));
+
+        // 双引号
+        let ns7 = ObjectUtils.splitNamePath('"foo"');
+        assert(ObjectUtils.arrayEquals(ns7, ['foo']));
+
+        let ns8 = ObjectUtils.splitNamePath('"foo"."bar\'bar"');
+        assert(ObjectUtils.arrayEquals(ns8, ['foo', 'bar\'bar']));
+
+        let ns9 = ObjectUtils.splitNamePath('"foo"."bar\'bar"."hello# \'., world!"');
+        assert(ObjectUtils.arrayEquals(ns9, ['foo', 'bar\'bar', 'hello# \'., world!']));
+    });
+
+    it('Test splitProperityNameSequence()', ()=>{
+        let ns1 = ObjectUtils.splitProperityNameSequence('foo');
+        assert(ObjectUtils.arrayEquals(ns1, ['foo']));
+
+        let ns2 = ObjectUtils.splitProperityNameSequence('foo,bar');
+        assert(ObjectUtils.arrayEquals(ns2, ['foo', 'bar']));
+
+        let ns3 = ObjectUtils.splitProperityNameSequence('foo,bar,hello');
+        assert(ObjectUtils.arrayEquals(ns3, ['foo', 'bar', 'hello']));
+
+        let ns3b = ObjectUtils.splitProperityNameSequence('foo, bar , hello ');
+        assert(ObjectUtils.arrayEquals(ns3b, ['foo', 'bar', 'hello']));
+
+        // 带单引号
+        let ns4 = ObjectUtils.splitProperityNameSequence('\'foo\'');
+        assert(ObjectUtils.arrayEquals(ns4, ['foo']));
+
+        let ns5 = ObjectUtils.splitProperityNameSequence('\'foo\',\'bar"bar\'');
+        assert(ObjectUtils.arrayEquals(ns5, ['foo', 'bar"bar']));
+
+        let ns6 = ObjectUtils.splitProperityNameSequence('\'foo\',\'bar"bar\',\'hello# \'\'., world!\'');
+        assert(ObjectUtils.arrayEquals(ns6, ['foo', 'bar"bar', 'hello# \'., world!']));
+
+        let ns6b = ObjectUtils.splitProperityNameSequence('\'foo\', \'bar"bar\' , \'hello# \'\'., world!\'');
+        assert(ObjectUtils.arrayEquals(ns6b, ['foo', 'bar"bar', 'hello# \'., world!']));
+
+        // 双引号
+        let ns7 = ObjectUtils.splitProperityNameSequence('"foo"');
+        assert(ObjectUtils.arrayEquals(ns7, ['foo']));
+
+        let ns8 = ObjectUtils.splitProperityNameSequence('"foo","bar\'bar"');
+        assert(ObjectUtils.arrayEquals(ns8, ['foo', 'bar\'bar']));
+
+        let ns9 = ObjectUtils.splitProperityNameSequence('"foo","bar\'bar","hello# \'., world!"');
+        assert(ObjectUtils.arrayEquals(ns9, ['foo', 'bar\'bar', 'hello# \'., world!']));
+
+        let ns9b = ObjectUtils.splitProperityNameSequence('"foo", "bar\'bar" , "hello# \'., world!"');
+        assert(ObjectUtils.arrayEquals(ns9b, ['foo', 'bar\'bar', 'hello# \'., world!']));
+    });
+
+    it('Test composeObject()', () => {
+        let o1 = {
+            id: 123,
+            name: 'foo',
+            checked: true
+        };
+
+        let r1 = ObjectUtils.composeObject(o1, ['id', 'name']);
+        assert(ObjectUtils.objectEquals(r1, {id: 123, name: 'foo'}));
+        assert(ObjectUtils.arrayEquals(Object.keys(r1).sort(), ['id', 'name']));
+
+        let r2 = ObjectUtils.composeObject(o1, ['id', 'addr', 'foo, bar. I\'m']);
+        assert(ObjectUtils.arrayEquals(Object.keys(r2).sort(), ['addr', 'foo, bar. I\'m', 'id']));
+        assert(r2.addr === undefined);
+        assert(r2['foo, bar. I\'m'] === undefined);
+    });
+
+    it('Test composeObjectByProperityNameSequence()', () => {
+        let o1 = {
+            id: 123,
+            name: 'foo',
+            checked: true
+        };
+
+        let r1 = ObjectUtils.composeObjectByProperityNameSequence(o1, 'id, name');
+        assert(ObjectUtils.objectEquals(r1, {id: 123, name: 'foo'}));
+        assert(ObjectUtils.arrayEquals(Object.keys(r1).sort(), ['id', 'name']));
+
+        let r2 = ObjectUtils.composeObjectByProperityNameSequence(o1, 'id, addr, \'foo, bar. I\'\'m\'');
+        assert(ObjectUtils.arrayEquals(Object.keys(r2).sort(), ['addr', 'foo, bar. I\'m', 'id']));
+        assert(r2.addr === undefined);
+        assert(r2['foo, bar. I\'m'] === undefined);
+    });
+
     describe('Test removePropertiesByKeyValues()', () => {
         it('Base', () => {
             let o1 = {
