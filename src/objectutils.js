@@ -651,7 +651,7 @@ class ObjectUtils {
         let value = sourceObject;
         while (value !== undefined && names.length > 0) {
             let name = names.shift();
-            value = value[name];
+            value = Object.keys(value).includes(name) ? value[name] : undefined;
         }
         return value;
     }
