@@ -1,6 +1,6 @@
 const assert = require('assert/strict');
 
-const ObjectUtils = require('../src/objectutils');
+const { ObjectUtils } = require('../index');
 
 describe('ObjectUtils Test', () => {
 
@@ -355,205 +355,6 @@ describe('ObjectUtils Test', () => {
         assert(!ObjectUtils.arrayAbsentsAll(a, [3, 5, 6]));
     });
 
-    it('Test getPropertyValueByNamePath()', () => {
-        let a = {
-            id: 123,
-            addr: {
-                city: 'abc',
-                street: 'xyz'
-            },
-            name: 'foobar'
-        };
-
-        assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'id'), 123);
-        assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'name'), 'foobar');
-        assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'addr.city'), 'abc');
-        assert.equal(ObjectUtils.getPropertyValueByNamePath(a, 'addr.street'), 'xyz');
-
-        assert(ObjectUtils.getPropertyValueByNamePath(a, 'no') === undefined);
-        assert(ObjectUtils.getPropertyValueByNamePath(a, 'no.way') === undefined);
-    });
-
-    it('Test splitNamePath()', ()=>{
-        let ns1 = ObjectUtils.splitNamePath('foo');
-        assert(ObjectUtils.arrayEquals(ns1, ['foo']));
-
-        let ns2 = ObjectUtils.splitNamePath('foo.bar');
-        assert(ObjectUtils.arrayEquals(ns2, ['foo', 'bar']));
-
-        let ns3 = ObjectUtils.splitNamePath('foo.bar.hello');
-        assert(ObjectUtils.arrayEquals(ns3, ['foo', 'bar', 'hello']));
-
-        // 带单引号
-        let ns4 = ObjectUtils.splitNamePath('\'foo\'');
-        assert(ObjectUtils.arrayEquals(ns4, ['foo']));
-
-        let ns5 = ObjectUtils.splitNamePath('\'foo\'.\'bar"bar\'');
-        assert(ObjectUtils.arrayEquals(ns5, ['foo', 'bar"bar']));
-
-        let ns6 = ObjectUtils.splitNamePath('\'foo\'.\'bar"bar\'.\'hello# \'\'., world!\'');
-        assert(ObjectUtils.arrayEquals(ns6, ['foo', 'bar"bar', 'hello# \'., world!']));
-
-        // 双引号
-        let ns7 = ObjectUtils.splitNamePath('"foo"');
-        assert(ObjectUtils.arrayEquals(ns7, ['foo']));
-
-        let ns8 = ObjectUtils.splitNamePath('"foo"."bar\'bar"');
-        assert(ObjectUtils.arrayEquals(ns8, ['foo', 'bar\'bar']));
-
-        let ns9 = ObjectUtils.splitNamePath('"foo"."bar\'bar"."hello# \'., world!"');
-        assert(ObjectUtils.arrayEquals(ns9, ['foo', 'bar\'bar', 'hello# \'., world!']));
-    });
-
-    it('Test splitProperityNameSequence()', ()=>{
-        let ns1 = ObjectUtils.splitProperityNameSequence('foo');
-        assert(ObjectUtils.arrayEquals(ns1, ['foo']));
-
-        let ns2 = ObjectUtils.splitProperityNameSequence('foo,bar');
-        assert(ObjectUtils.arrayEquals(ns2, ['foo', 'bar']));
-
-        let ns3 = ObjectUtils.splitProperityNameSequence('foo,bar,hello');
-        assert(ObjectUtils.arrayEquals(ns3, ['foo', 'bar', 'hello']));
-
-        let ns3b = ObjectUtils.splitProperityNameSequence('foo, bar , hello ');
-        assert(ObjectUtils.arrayEquals(ns3b, ['foo', 'bar', 'hello']));
-
-        // 带单引号
-        let ns4 = ObjectUtils.splitProperityNameSequence('\'foo\'');
-        assert(ObjectUtils.arrayEquals(ns4, ['foo']));
-
-        let ns5 = ObjectUtils.splitProperityNameSequence('\'foo\',\'bar"bar\'');
-        assert(ObjectUtils.arrayEquals(ns5, ['foo', 'bar"bar']));
-
-        let ns6 = ObjectUtils.splitProperityNameSequence('\'foo\',\'bar"bar\',\'hello# \'\'., world!\'');
-        assert(ObjectUtils.arrayEquals(ns6, ['foo', 'bar"bar', 'hello# \'., world!']));
-
-        let ns6b = ObjectUtils.splitProperityNameSequence('\'foo\', \'bar"bar\' , \'hello# \'\'., world!\'');
-        assert(ObjectUtils.arrayEquals(ns6b, ['foo', 'bar"bar', 'hello# \'., world!']));
-
-        // 双引号
-        let ns7 = ObjectUtils.splitProperityNameSequence('"foo"');
-        assert(ObjectUtils.arrayEquals(ns7, ['foo']));
-
-        let ns8 = ObjectUtils.splitProperityNameSequence('"foo","bar\'bar"');
-        assert(ObjectUtils.arrayEquals(ns8, ['foo', 'bar\'bar']));
-
-        let ns9 = ObjectUtils.splitProperityNameSequence('"foo","bar\'bar","hello# \'., world!"');
-        assert(ObjectUtils.arrayEquals(ns9, ['foo', 'bar\'bar', 'hello# \'., world!']));
-
-        let ns9b = ObjectUtils.splitProperityNameSequence('"foo", "bar\'bar" , "hello# \'., world!"');
-        assert(ObjectUtils.arrayEquals(ns9b, ['foo', 'bar\'bar', 'hello# \'., world!']));
-    });
-
-    it('Test composeObject()', () => {
-        let o1 = {
-            id: 123,
-            name: 'foo',
-            checked: true
-        };
-
-        let r1 = ObjectUtils.composeObject(o1, ['id', 'name']);
-        assert(ObjectUtils.objectEquals(r1, {id: 123, name: 'foo'}));
-        assert(ObjectUtils.arrayEquals(Object.keys(r1).sort(), ['id', 'name']));
-
-        let r2 = ObjectUtils.composeObject(o1, ['id', 'addr', 'foo, bar. I\'m']);
-        assert(ObjectUtils.arrayEquals(Object.keys(r2).sort(), ['addr', 'foo, bar. I\'m', 'id']));
-        assert(r2.addr === undefined);
-        assert(r2['foo, bar. I\'m'] === undefined);
-    });
-
-    it('Test composeObjectByProperityNameSequence()', () => {
-        let o1 = {
-            id: 123,
-            name: 'foo',
-            checked: true
-        };
-
-        let r1 = ObjectUtils.composeObjectByProperityNameSequence(o1, 'id, name');
-        assert(ObjectUtils.objectEquals(r1, {id: 123, name: 'foo'}));
-        assert(ObjectUtils.arrayEquals(Object.keys(r1).sort(), ['id', 'name']));
-
-        let r2 = ObjectUtils.composeObjectByProperityNameSequence(o1, 'id, addr, \'foo, bar. I\'\'m\'');
-        assert(ObjectUtils.arrayEquals(Object.keys(r2).sort(), ['addr', 'foo, bar. I\'m', 'id']));
-        assert(r2.addr === undefined);
-        assert(r2['foo, bar. I\'m'] === undefined);
-    });
-
-    describe('Test removePropertiesByKeyValues()', () => {
-        it('Base', () => {
-            let o1 = {
-                id: 123,
-                name: 'foo',
-                creationTime: new Date(1)
-            }
-
-            // 删除一个对象，其中一条目不匹配，另一条目匹配
-            let r1 = ObjectUtils.removePropertiesByKeyValues(o1, {
-                id: 456,  // different
-                name: 'foo' // equals
-            });
-
-            assert(ObjectUtils.objectEquals(r1, {
-                id: 123,
-                creationTime: new Date(1)
-            }))
-
-            // 继续删除
-            let r2 = ObjectUtils.removePropertiesByKeyValues(r1, {
-                id: 123,
-                creationTime: new Date(1)
-            });
-
-            assert(ObjectUtils.isEmpty(r2));
-        });
-
-        it('Deep', () => {
-            let o1 = {
-                id: 123,
-                name: 'foo',
-                addr: {
-                    city: 'sz',
-                    postcode: '518000'
-                }
-            };
-
-            let r1 = ObjectUtils.removePropertiesByKeyValues(o1,
-                {
-                    id: 123,
-                    addr: {
-                        city: 'sz'
-                    }
-                });
-
-            assert(ObjectUtils.objectEquals(r1, {
-                name: 'foo',
-                addr: {
-                    postcode: '518000'
-                }
-            }));
-        });
-    });
-
-    it('Test collapseKeyValueArray()', () => {
-        let a = [
-            { key: 'id', value: 123 },
-            { key: 'name', value: 'foobar' }
-        ];
-        let obj = ObjectUtils.collapseKeyValueArray(a, 'key', 'value');
-
-        assert(ObjectUtils.objectEquals(obj, { id: 123, name: 'foobar' }));
-    });
-
-    it('Test expandKeyValueObject()', () => {
-        let obj = { id: 123, name: 'foobar' };
-        let a = ObjectUtils.expandKeyValueObject(obj, 'key', 'value');
-
-        assert(ObjectUtils.arrayEquals(a, [
-            { key: 'id', value: 123 },
-            { key: 'name', value: 'foobar' }
-        ]));
-    });
-
     describe('Test objectMerge()', () => {
         it('Base', () => {
             let o1 = {
@@ -577,7 +378,7 @@ describe('ObjectUtils Test', () => {
             }));
         });
 
-        it('Merge default values', ()=> {
+        it('Merge default values', () => {
             let defaultObject1 = {
                 id: 123,
                 name: 'foo',
@@ -892,145 +693,79 @@ describe('ObjectUtils Test', () => {
         assert(ObjectUtils.equals(c2, a1));
     });
 
-    it('Test pruneObject()', () => {
-        let o1 = {
-            id: 123,
-            name: 'foo',
-            addr: { city: 'sz', postcode: '518000' },
-            checked: true,
-            creationTime: new Date(1)
-        };
-
-        let p1 = ObjectUtils.pruneObject(o1, ['id', 'name']);
-        let p2 = ObjectUtils.pruneObject(o1, ['id', 'name', 'addr']);
-        let p3 = ObjectUtils.pruneObject(o1, ['id', 'checked', 'creationTime']);
-        let p4 = ObjectUtils.pruneObject(o1, ['name', 'score']); // 'score' 为一个源对象不存在的属性
-
-        assert(ObjectUtils.objectEquals(p1, {
-            id: 123,
-            name: 'foo'
-        }));
-
-        assert(ObjectUtils.objectEquals(p2, {
-            id: 123,
-            name: 'foo',
-            addr: { city: 'sz', postcode: '518000' },
-        }));
-
-        assert(ObjectUtils.objectEquals(p3, {
-            id: 123,
-            checked: true,
-            creationTime: new Date(1)
-        }));
-
-        assert(ObjectUtils.objectEquals(p4, {
-            name: 'foo'
-        }));
-    });
-
-    describe('Test compress()/decompress()', () => {
-        it('Test1', () => {
-            let obj1 = {
+    describe('Test removePropertiesByKeyValues()', () => {
+        it('Base', () => {
+            let o1 = {
                 id: 123,
-                name: 'yang'
-            };
+                name: 'foo',
+                creationTime: new Date(1)
+            }
 
-            let t1 = ['id', 'name'];
+            // 删除一个对象，其中一条目不匹配，另一条目匹配
+            let r1 = ObjectUtils.removePropertiesByKeyValues(o1, {
+                id: 456,  // different
+                name: 'foo' // equals
+            });
 
-            let c1 = ObjectUtils.compress(obj1, t1);
-            assert(ObjectUtils.arrayEquals(c1, [123, 'yang']));
+            assert(ObjectUtils.objectEquals(r1, {
+                id: 123,
+                creationTime: new Date(1)
+            }))
 
-            let d1 = ObjectUtils.decompress(c1, t1);
-            assert(ObjectUtils.objectEquals(d1, obj1));
+            // 继续删除
+            let r2 = ObjectUtils.removePropertiesByKeyValues(r1, {
+                id: 123,
+                creationTime: new Date(1)
+            });
+
+            assert(ObjectUtils.isEmpty(r2));
         });
 
-        it('Test2', () => {
-            let obj1 = {
+        it('Deep', () => {
+            let o1 = {
                 id: 123,
-                name: 'yang',
-                tags: ['foo', 'bar']
-            };
-
-            let t1 = ['id', 'name', 'tags'];
-
-            let c1 = ObjectUtils.compress(obj1, t1);
-            assert(ObjectUtils.arrayEquals(c1, [123, 'yang', ['foo', 'bar']]));
-
-            let d1 = ObjectUtils.decompress(c1, t1);
-            assert(ObjectUtils.objectEquals(d1, obj1));
-        });
-
-        it('Test3', () => {
-            let obj1 = {
-                id: 123,
-                name: 'yang',
-                tags: ['foo', 'bar']
-            };
-
-            let t1 = ['id', 'name', 'addr', 'tags'];
-
-            let c1 = ObjectUtils.compress(obj1, t1);
-            assert(ObjectUtils.arrayEquals(c1, [123, 'yang', undefined, ['foo', 'bar']]));
-
-            let d1 = ObjectUtils.decompress(c1, t1);
-
-            let obj2 = {
-                id: 123,
-                name: 'yang',
-                addr: undefined,
-                tags: ['foo', 'bar']
-            };
-            assert(ObjectUtils.objectEquals(d1, obj2));
-        });
-
-        it('Test4', () => {
-            let obj1 = {
-                id: 123,
-                name: 'yang',
+                name: 'foo',
                 addr: {
-                    street: '1st Rd',
-                    city: 'Shenzhen'
+                    city: 'sz',
+                    postcode: '518000'
                 }
             };
 
-            let t1 = ['id', 'name', { name: 'addr', keys: ['street', 'city'] }];
+            let r1 = ObjectUtils.removePropertiesByKeyValues(o1,
+                {
+                    id: 123,
+                    addr: {
+                        city: 'sz'
+                    }
+                });
 
-            let c1 = ObjectUtils.compress(obj1, t1);
-            assert(ObjectUtils.arrayEquals(c1, [123, 'yang', ['1st Rd', 'Shenzhen']]));
-
-            let d1 = ObjectUtils.decompress(c1, t1);
-            assert(ObjectUtils.objectEquals(d1, obj1));
-        });
-
-        it('Test5', () => {
-            let obj1 = {
-                id: 123,
-                name: 'yang',
-                addr: [{
-                    street: '1st Rd',
-                    city: 'Shenzhen'
-                }, {
-                    street: '2st Rd',
-                    city: 'Guangzhou'
-                }]
-            };
-
-            let t1 = ['id', 'name', {
-                name: 'addr',
-                type: 'array',
-                keys: ['street', 'city']
-            }];
-
-            let c1 = ObjectUtils.compress(obj1, t1);
-
-            assert(ObjectUtils.arrayEquals(c1, [123, 'yang', [
-                ['1st Rd', 'Shenzhen'],
-                ['2st Rd', 'Guangzhou']
-            ]
-            ]));
-
-            let d1 = ObjectUtils.decompress(c1, t1);
-            assert(ObjectUtils.objectEquals(d1, obj1));
+            assert(ObjectUtils.objectEquals(r1, {
+                name: 'foo',
+                addr: {
+                    postcode: '518000'
+                }
+            }));
         });
     });
+
+    it('Test collapseKeyValueArray()', () => {
+        let a = [
+            { key: 'id', value: 123 },
+            { key: 'name', value: 'foobar' }
+        ];
+        let obj = ObjectUtils.collapseKeyValueArray(a, 'key', 'value');
+
+        assert(ObjectUtils.objectEquals(obj, { id: 123, name: 'foobar' }));
+    });
+
+    it('Test expandKeyValueObject()', () => {
+        let obj = { id: 123, name: 'foobar' };
+        let a = ObjectUtils.expandKeyValueObject(obj, 'key', 'value');
+
+        assert(ObjectUtils.arrayEquals(a, [
+            { key: 'id', value: 123 },
+            { key: 'name', value: 'foobar' }
+        ]));
+    });
+
 });
