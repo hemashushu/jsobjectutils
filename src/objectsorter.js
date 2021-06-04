@@ -7,7 +7,7 @@ const OrderField = require('./orderfield');
 class ObjectSorter {
 
     /**
-     * 解析排序条件表达式（字符串）为一组排序条件对象（Condition）
+     * 解析排序条件表达式（字符串）为一组排序字段对象（Condition）
      *
      * - 排序表达式为一个以逗号分隔的，待排序的（项目对象的）属性名称拼接
      *   而成的字符串，比如：
@@ -192,6 +192,7 @@ class ObjectSorter {
 
     /**
      * 排序对象数组
+     *
      * 方法无返回值，排序操作直接在原数组上实现
      *
      * @param {*} container
@@ -201,10 +202,18 @@ class ObjectSorter {
      */
     static sort(itemObjects, orderFields) {
         itemObjects.sort((leftItemObject, rightItemObject) => {
-            return ObjectSorter._compareObject(leftItemObject, rightItemObject, orderFields);
+            return ObjectSorter.compareObject(leftItemObject, rightItemObject, orderFields);
         });
     }
 
+    /**
+     * 根据排序表达式排序对象数组
+     *
+     * 方法无返回值，排序操作直接在原数组上实现
+     *
+     * @param {*} itemObjects
+     * @param {*} orderExpression 详细语法见 parseOrderExpression 方法。
+     */
     static sortByOrderExpression(itemObjects, orderExpression) {
         let orderFields = ObjectSorter.parseOrderExpression(orderExpression);
         ObjectSorter.sort(itemObjects, orderFields);
@@ -221,11 +230,11 @@ class ObjectSorter {
      *     - 当左边等于右边时返回 0
      *     - 当左边大于右边时返回 1
      */
-    static _compareObject(leftItemObject, rightItemObject, orderFields) {
+    static compareObject(leftItemObject, rightItemObject, orderFields) {
         let result = 0;
 
         for (let { fieldName, isAscendingOrder } of orderFields) {
-            let fieldResult = ObjectSorter._compareField(leftItemObject, rightItemObject, fieldName);
+            let fieldResult = ObjectSorter.compareField(leftItemObject, rightItemObject, fieldName);
 
             if (fieldResult === 0) {
                 // 分不出高低，所以继续检查下一个条件
@@ -253,7 +262,7 @@ class ObjectSorter {
      *     - 当左边等于右边时返回 0
      *     - 当左边大于右边时返回 1
      */
-    static _compareField(leftItemObject, rightItemObject, namePath) {
+    static compareField(leftItemObject, rightItemObject, namePath) {
         let leftValue = ObjectAccessor.getPropertyValueByNamePath(leftItemObject, namePath);
         let rightValue = ObjectAccessor.getPropertyValueByNamePath(rightItemObject, namePath);
 
