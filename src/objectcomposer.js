@@ -120,7 +120,7 @@ class ObjectComposer {
      * 根据指定的属性名称重组对象。
      *
      * - 即只挑选指定名称的属性构成一个新的对象。
-     * - 如果原对象不存在指定的属性，则该属性值为 undefined。
+     * - 如果原对象不存在指定的属性，则新的对象也不会有该属性
      *
      * @param {*} sourceObject
      * @param {*} propertyNames 属性名称数组，
@@ -129,9 +129,12 @@ class ObjectComposer {
      * @returns 返回只由指定属性所构成的新对象
      */
     static compose(sourceObject, propertyNames) {
+        let keys = Object.keys(sourceObject);
         let targetObject = {};
         for(let propertyName of propertyNames) {
-            targetObject[propertyName] = sourceObject[propertyName];
+            if (keys.includes(propertyName)){
+                targetObject[propertyName] =  sourceObject[propertyName];
+            }
         }
         return targetObject;
     }

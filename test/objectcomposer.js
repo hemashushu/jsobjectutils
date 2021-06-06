@@ -8,17 +8,22 @@ describe('ObjectComposer Test', () => {
         let o1 = {
             id: 123,
             name: 'foo',
-            checked: true
+            checked: true,
+            'foo, bar. I\'m': 'symbol',
+            n: undefined
         };
 
         let r1 = ObjectComposer.compose(o1, ['id', 'name']);
         assert(ObjectUtils.objectEquals(r1, {id: 123, name: 'foo'}));
         assert(ObjectUtils.arrayEquals(Object.keys(r1).sort(), ['id', 'name']));
 
-        let r2 = ObjectComposer.compose(o1, ['id', 'addr', 'foo, bar. I\'m']);
-        assert(ObjectUtils.arrayEquals(Object.keys(r2).sort(), ['addr', 'foo, bar. I\'m', 'id']));
-        assert(r2.addr === undefined);
-        assert(r2['foo, bar. I\'m'] === undefined);
+        let r2 = ObjectComposer.compose(o1, ['id', 'n', 'addr', 'foo, bar. I\'m']); // 'addr' 为一个源对象不存在的属性
+        assert(ObjectUtils.arrayEquals(Object.keys(r2).sort(), ['foo, bar. I\'m', 'id', 'n']));
+        assert(Object.keys(r2).includes('n'));
+        assert(!Object.keys(r2).includes('addr'));
+
+        assert.equal(r2['foo, bar. I\'m'], 'symbol');
+        assert.equal(r2.n, undefined);
     });
 
     it('Test compose() - deepth', () => {
@@ -53,8 +58,7 @@ describe('ObjectComposer Test', () => {
         }));
 
         assert(ObjectUtils.objectEquals(p4, {
-            name: 'foo',
-            score: undefined
+            name: 'foo'
         }));
     });
 
@@ -102,17 +106,17 @@ describe('ObjectComposer Test', () => {
         let o1 = {
             id: 123,
             name: 'foo',
-            checked: true
+            checked: true,
+            'foo, bar. I\'m': 'symbol',
+            n: undefined
         };
 
         let r1 = ObjectComposer.composeByProperityNameSequence(o1, 'id, name');
         assert(ObjectUtils.objectEquals(r1, {id: 123, name: 'foo'}));
         assert(ObjectUtils.arrayEquals(Object.keys(r1).sort(), ['id', 'name']));
 
-        let r2 = ObjectComposer.composeByProperityNameSequence(o1, 'id, addr, \'foo, bar. I\'\'m\'');
-        assert(ObjectUtils.arrayEquals(Object.keys(r2).sort(), ['addr', 'foo, bar. I\'m', 'id']));
-        assert(r2.addr === undefined);
-        assert(r2['foo, bar. I\'m'] === undefined);
+        let r2 = ObjectComposer.composeByProperityNameSequence(o1, 'id, n, addr, \'foo, bar. I\'\'m\''); // 'addr' 为一个源对象不存在的属性
+        assert(ObjectUtils.arrayEquals(Object.keys(r2).sort(), ['foo, bar. I\'m', 'id', 'n']));
     });
 
 });
