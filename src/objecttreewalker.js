@@ -43,21 +43,30 @@ class ObjectTreeWalker {
      * @returns 返回指定的子对象，如果没找到则返回 undefined
      */
     static findChild(cascadedObject, matchFunc, childPropName = defaultChildPropertyName) {
-        let result = ObjectTreeWalker._findChild(cascadedObject, matchFunc, childPropName);
+        let result = ObjectTreeWalker.findChildDetails(cascadedObject, matchFunc, childPropName);
         if (result !== undefined) {
             return result.item;
         }
     }
 
-    // 返回 {items, index, item}
-    static _findChild(cascadedObject, matchFunc, childPropName = defaultChildPropertyName) {
+    /**
+     * 寻找层叠式对象之中的某个子对象
+     *
+     * @param {*} cascadedObject
+     * @param {*} matchFunc
+     * @param {*} childPropName
+     * @returns 返回指定子对象的详细信息： {parent, items, index, item}。
+     *     如果没找到则返回 undefined
+     */
+    static findChildDetails(cascadedObject, matchFunc, childPropName = defaultChildPropertyName) {
         let findInto = (parent) => {
             let children = parent[childPropName];
             for (let idx = 0; idx < children.length; idx++) {
                 let child = children[idx];
                 if (matchFunc(child)) {
                     return {
-                        items: children,
+                        parent: parent,
+                        siblings: children,
                         index: idx,
                         item: child
                     };
@@ -142,13 +151,13 @@ class ObjectTreeWalker {
      *     - 返回 null 如果已经是最后一个对象
      */
     static findNextSiblingInCascadedObject(cascadedObject, matchFunc, childPropName = defaultChildPropertyName) {
-        let result = ObjectTreeWalker._findChild(cascadedObject, matchFunc, childPropName);
+        let result = ObjectTreeWalker.findChildDetails(cascadedObject, matchFunc, childPropName);
         if (result === undefined) {
             return;
         }
 
-        let { items, index } = result;
-        return ObjectTreeWalker.findNextSiblingByIndex(items, index);
+        let { siblings, index } = result;
+        return ObjectTreeWalker.findNextSiblingByIndex(siblings, index);
     }
 
     /**
@@ -162,13 +171,13 @@ class ObjectTreeWalker {
      *     - 返回 null 如果已经是最后一个对象
      */
     static findPreviousSiblingInCascadedObject(cascadedObject, matchFunc, childPropName = defaultChildPropertyName) {
-        let result = ObjectTreeWalker._findChild(cascadedObject, matchFunc, childPropName);
+        let result = ObjectTreeWalker.findChildDetails(cascadedObject, matchFunc, childPropName);
         if (result === undefined) {
             return;
         }
 
-        let { items, index } = result;
-        return ObjectTreeWalker.findPreviousSiblingByIndex(items, index);
+        let { siblings, index } = result;
+        return ObjectTreeWalker.findPreviousSiblingByIndex(siblings, index);
     }
 
     /**
