@@ -55,20 +55,20 @@ class ObjectAccessor {
         for(let idx=0; idx<namePath.length; idx++) {
             let c = namePath[idx];
 
-            switch(state) {
+            switch (state) {
                 case 'expect-name-start':
                     {
                         // if (c === ' '){
                         //     continue;
                         // }else
                         if (c === '"') {
-                            nameBuffer = [];
+                            // nameBuffer = [];
                             state = 'expect-double-quote-end';
                         }else if (c === '\'') {
-                            nameBuffer = [];
+                            // nameBuffer = [];
                             state = 'expect-single-quote-end';
                         }else {
-                            nameBuffer = [];
+                            // nameBuffer = [];
                             nameBuffer.push(c);
                             state = 'expect-name-end';
                         }
@@ -80,6 +80,7 @@ class ObjectAccessor {
                         if (c === '"') {
                             let name = nameBuffer.join('');
                             names.push(name);
+                            nameBuffer = [];
                             state = 'expect-dot';
                         }else {
                             nameBuffer.push(c);
@@ -99,6 +100,7 @@ class ObjectAccessor {
                                 // 当前是结束单引号
                                 let name = nameBuffer.join('');
                                 names.push(name);
+                                nameBuffer = [];
                                 state = 'expect-dot';
                             }
                         }else {
@@ -113,6 +115,7 @@ class ObjectAccessor {
                             let name = nameBuffer.join('');
                             //names.push(name.trim());
                             names.push(name);
+                            nameBuffer = [];
                             state = 'expect-name-start';
                         }else {
                             nameBuffer.push(c);

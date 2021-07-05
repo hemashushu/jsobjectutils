@@ -55,6 +55,8 @@ class ObjectSorter {
             name = name.trim();
             ascending = ascending.trim();
             nameAscendingPairs.push({ name, ascending });
+
+            resetBuffer();
         };
 
         for (let idx = 0; idx < orderExpression.length; idx++) {
@@ -67,13 +69,13 @@ class ObjectSorter {
                             continue;
                         } else
                             if (c === '"') {
-                                resetBuffer();
+                                // resetBuffer();
                                 state = 'expect-double-quote-end';
                             } else if (c === '\'') {
-                                resetBuffer();
+                                // resetBuffer();
                                 state = 'expect-single-quote-end';
                             } else {
-                                resetBuffer();
+                                // resetBuffer();
                                 nameBuffer.push(c);
                                 state = 'expect-name-end';
                             }
